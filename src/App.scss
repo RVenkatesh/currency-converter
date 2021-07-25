@@ -1,0 +1,40 @@
+.app {
+  text-align: center;
+  height: 100vh;
+  .app-header {
+    font-size: 1.8em;
+    font-weight: 700;
+    background: rgba($color: #000000, $alpha: .2);
+    padding: 10px 20px;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+  .app-content {
+    min-height: calc(100vh - 200px);
+  }
+  .footer {
+    background: #0F335F;
+    padding: 20px;
+    width: 100%;
+    a {
+      color: inherit;
+      text-decoration: none;
+      &:hover {
+        color: inherit;
+      }
+    }
+    .de-emphasize {
+      color: #aaa;
+      font-size: 12px;
+    }
+    .creator-name {
+    }
+    .social {
+      svg {
+        margin: 5px;
+      }
+    }
+  }
+}
