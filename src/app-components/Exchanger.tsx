@@ -57,7 +57,7 @@ function useExchangeRate(initialValue = 1, defaultFrom: string, defaultTo: strin
                 let query = `query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY}`;
                 let response = await request(`${BASE_URL}${query}`);
                 let newRate = parseFloat(response['Realtime Currency Exchange Rate']['5. Exchange Rate']);
-                setRate(parseFloat(newRate.toFixed(FLOAT_PRECISION)));
+                setRate(newRate);
             } catch (error) {
                 console.log(error);
             }
@@ -149,9 +149,11 @@ function Converter() {
     useEffect(() => {
         async function updateConversion() {
             if (current === 'from') {
-                toCurrencyInput.setValue(fromCurrencyInput.value * exchangeRate.rate);
+                let newValue = (fromCurrencyInput.value * exchangeRate.rate).toFixed(FLOAT_PRECISION);
+                toCurrencyInput.setValue(parseFloat(newValue));
             } else {
-                fromCurrencyInput.setValue(toCurrencyInput.value / exchangeRate.rate);
+                let newValue = (toCurrencyInput.value / exchangeRate.rate).toFixed(FLOAT_PRECISION);
+                fromCurrencyInput.setValue(parseFloat(newValue));
             }
         }
         updateConversion();
