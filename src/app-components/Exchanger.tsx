@@ -8,6 +8,7 @@ import ReactApexChart from 'react-apexcharts';
 const BASE_URL = 'https://www.alphavantage.co/';
 const FLOAT_PRECISION = 4;
 const API_KEY = 'NP2GW775OQW7TW4A';
+const HISTORY_LIMIT = 30;
 
 async function request(url: string, config?: object) {
     try {
@@ -21,7 +22,9 @@ async function request(url: string, config?: object) {
 
 /**
  *
- * @param {*} initialValue Handles update during value change of any input field
+ * @param {any} initialValue Initialization value of the input
+ * @param {Function} callback Function to the parent for taking any actions with the updated value
+ * @param {any} ...params Params to be passed to the callback function
  * @returns Object containing the latest value, the onChange action and value setter method to be bound to
  *   the corresponding event
  */
@@ -40,6 +43,14 @@ async function request(url: string, config?: object) {
     };
 }
 
+/**
+ *
+ * @param {number} initialValue Initialization value of the input. Default is 1.
+ * @param {string} defaultFrom  Default base currency value
+ * @param {string} defaultTo    Default target currency value
+ * @returns {Object} Object containing the exchange rate, last 30 (HISTORY_LIMIT) days daily rate,
+ *   from currency value, name and setter function, to currency value, name and setter function
+ */
 function useExchangeRate(initialValue = 1, defaultFrom: string, defaultTo: string) {
     let [from, setFrom] = useState(defaultFrom);
     let [to, setTo] = useState(defaultTo);
@@ -78,7 +89,7 @@ function useExchangeRate(initialValue = 1, defaultFrom: string, defaultTo: strin
                         new Date(day).getTime(),
                         parseFloat(details['4. close']).toFixed(FLOAT_PRECISION)
                     ]);
-                    if (series.length === 30) {
+                    if (series.length === HISTORY_LIMIT) {
                         break;
                     }
                 }
@@ -111,7 +122,12 @@ function useExchangeRate(initialValue = 1, defaultFrom: string, defaultTo: strin
     }
 }
 
-async function getCurrencies(url: string) {
+/**
+ *
+ * @param {string} url  Url of the csv file
+ * @returns {Promise} Resolves with the list of rows of the csv.
+ */
+function getCurrencies(url: string) {
     return new Promise((resolve, reject) => {
         Papa.parse(url, {
             download: true,
@@ -123,6 +139,11 @@ async function getCurrencies(url: string) {
         });
     });
 }
+
+/**
+ *
+ * @returns {Array} List of all currencies and code
+ */
 function useCurrenciesReducer() {
     const PHY_CURRENCY_LIST_URL = `${BASE_URL}physical_currency_list/`;
     let [currencies, setCurrencies] = useState<any>([]);
@@ -146,6 +167,7 @@ function Converter() {
     let toCurrencyInput = useInput(0, changeCurrent, 'to');
     let exchangeRate = useExchangeRate(1, 'USD', 'EUR');
 
+    // If the user enters input in the from currency, update the to value and vice versa.
     useEffect(() => {
         async function updateConversion() {
             if (current === 'from') {
@@ -173,16 +195,13 @@ function Converter() {
 
     let xaxis: ApexXAxis = {
         type: 'datetime',
-        axisTicks: {
-            color: '#000'
-        }
     };
     let chart: ApexChart = {
         foreColor: "#fff",
         fontFamily: 'Poppins',
     }
 
-    // Graph
+    // Options for exchange history graph
     let graphOptions = {
         series: [{
             data: exchangeRate.dailyRate
@@ -192,23 +211,19 @@ function Converter() {
             dataLabels: {
                 enabled: false
             },
-            markers: {
-                size: 0,
-                style: 'hollow',
-            },
             xaxis,
             tooltip: {
                 x: {
-                format: 'dd MMM yyyy'
+                    format: 'dd MMM yyyy'
                 }
             },
             fill: {
                 type: 'gradient',
                 gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.9,
-                stops: [0, 100]
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.9,
+                    stops: [0, 100]
                 }
             },
         }, 
